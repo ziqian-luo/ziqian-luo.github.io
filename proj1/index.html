@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Project Showcase</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            color: #333;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            margin: auto;
+            max-width: 800px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .appendix-note {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .project-img {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        figcaption {
+            font-size: 1em;
+            color: #555;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>CS180 Proj 1: Colorizing the Prokudin-Gorskii photo collection</h1>
+        
+        <!-- Project Description Section -->
+        <div class="section">
+            <h2>Overview</h2>
+            <p>The goal of this project is to take Prokudin-Gorskii's digitized glass plate images and reconstruct full-color images using image processing techniques. The primary challenge is to align the three color channel images (red, green, blue) extracted from a single plate, ensuring that the final composite image has minimal visual artifacts.</p>
+        </div>
+
+        <!-- Approaches Section -->
+        <div class="section">
+            <h2>Approach</h2>
+            <p>I choose to align the green and blue channels with the red channel using translation-based image alignment. A simple exhaustive search over small pixel displacements is employed to find the best alignment, using L2 norm as the matching metric (the lower the better). To improve the efficiency , the pyramid search method is applied. This method involves scaling down the images and aligning them at coarser levels before refining the alignment at higher resolutions. Each level will pass on the alignment information to the next level and the search range will be halfed to lower the computational costs as the resolution is getting higher (the initial search range is set to [-20, 20] and the minimal serach range is [-2, 2]). Also the channels will be cropped slightly by 10% before begining the alignment process to ensure the algorithm is matching the actual contents instead of the borders of the images.</p>
+        
+        </div class = "section">
+            <h2>Sample Images</h2>
+            <p>Below are some of the images that I have colorized using the above approach.</p>
+            <figure>
+                <img src="output/cathedral_naive_False_output.jpg" alt="Cathedral" class="project-img">
+                <figcaption>Cathedral</figcaption>
+                <img src="output/monastery_naive_False_output.jpg" alt="Boat" class="project-img">
+                <figcaption>Monastery</figcaption>
+                <img src="output/tobolsk_naive_False_output.jpg" alt="Tobolsk" class="project-img">
+                <figcaption>Tobolsk</figcaption>
+                <img src="output/lady_naive_False_output.jpg" alt="Lady" class="project-img" >
+                <figcaption>Lady</figcaption>
+                <img src="output/onion_church_naive_False_output.jpg" alt="Onion Church" class="project-img" >
+                <figcaption>Onion Church</figcaption>
+            </figure>
+        <!-- Key Features Section -->
+        <div class="section">
+            <h2>Bells and Whistles</h2>
+            <h3>Edge Detection</h3>
+            <p>Instead of aligning the entire channels, I used cv2.Canny to detect edges and align those edges. This works very well on images with lots of edges like emir.tif. </p>
+            <h2>Sample Images</h2>
+            <figure> 
+                <img src="output/emir_naive_False_output.jpg" alt="Emir without Edge Detection" class="project-img" >
+                <figcaption>Emir without Edge Detection</figcaption>
+                <img src="output/emir_edge_False_output.jpg" alt="Emir with Edge Detection" class="project-img" >
+                <figcaption>Emir with Edge Detection</figcaption>
+            </figure>
+            <h3>Auto Cropping</h3>
+            <p> An auto cropping algorithm is used to crop the unwanted visual effects of the postprocessed images. It will compare the intensities of the pixels between the three channels and actively detect white or black borders. The reserved region will be the rectangle bounding the largest connecting region. </p>
+            <h2>Sample Images</h2>
+            <figure>
+                <img src="output/sculpture_edge_False_output.jpg" alt="Sculpture without Auto Cropping" class="project-img" >
+                <figcaption>Sculpture without Auto Cropping</figcaption>
+                <img src="output/sculpture_edge_True_output.jpg" alt="Sculpture with Auto Cropping" class="project-img" >
+                <figcaption>Sculpture with Auto Cropping</figcaption>
+            </figure>
+            <p> The algorithm will mostly be able to remove white and black orders and remove some colored borders. It is not perfect on every image</p>
+        </div>
+
+        <!-- Final Product Section -->
+        <div class="section">
+            <h2>Final Images (with Edge Detection and Auto Cropping)</h2>
+            <figure>
+                <img src="output/cathedral_edge_True_output.jpg" alt="Cathedral" class="project-img" >
+                <figcaption>Cathedral (Shifts:[-12.  -3.], [-7. -1.])</figcaption>
+                <img src="output/church_edge_True_output.jpg" alt="Church" class="project-img" >
+                <figcaption>Church (Shifts: [-58.   4.], [-33.   8.])</figcaption>
+                <img src="output/emir_edge_True_output.jpg" alt="Emir" class="project-img" >
+                <figcaption>Emir (Shifts: [-107.  -40.], [-58. -17.])</figcaption>
+                <img src="output/harvesters_edge_True_output.jpg" alt="Harvesters" class="project-img" >
+                <figcaption>Harvesters (Shifts: [-123.  -11.], [-64.   3.])</figcaption>
+                <img src="output/icon_edge_True_output.jpg" alt="Icon" class="project-img" >
+                <figcaption>Icon (Shifts: [-90. -22.], [-48.  -5.])</figcaption>
+                <img src="output/lady_edge_True_output.jpg" alt="Lady" class="project-img" >
+                <figcaption>Lady (Shifts: [-120.  -13.], [-63.  -3.])</figcaption>
+                <img src="output/melons_edge_True_output.jpg" alt="Melons" class="project-img" >
+                <figcaption>Melons (Shifts: [-176.  -13.], [-96.  -4.])</figcaption>
+                <img src="output/monastery_edge_True_output.jpg" alt="Monastery" class="project-img" > 
+                <figcaption>Monastery (Shifts: [-3. -2.], [-6. -1.])</figcaption>
+                <img src="output/onion_church_edge_True_output.jpg" alt="Onion Church" class="project-img" >
+                <figcaption>Onion Church (Shifts: [-107.  -35.], [-58. -10.])</figcaption>
+                <img src="output/sculpture_edge_True_output.jpg" alt="Sculpture" class="project-img" >
+                <figcaption>Sculpture (Shifts: [-140.   27.], [-107.   16.])</figcaption>
+                <img src="output/self_portrait_edge_True_output.jpg" alt="Self Portrait" class="project-img" >
+                <figcaption>Self Portrait (Shifts: [-175.  -37.], [-98.  -8.])</figcaption>
+                <img src="output/three_generations_edge_True_output.jpg" alt="Three Generations" class="project-img" >
+                <figcaption>Three Generations (Shifts: [-111.   -8.], [-59.   7.])</figcaption>
+                <img src="output/tobolsk_edge_True_output.jpg" alt="Tobolsk" class="project-img" >
+                <figcaption>Tobolsk (Shifts: [-6. -3.], [-4.  0.])</figcaption>
+                <img src="output/train_edge_True_output.jpg" alt="Train" class="project-img" >
+                <figcaption>Train (Shifts: [-85. -29.], [-41. -26.])</figcaption>
+            </figure>
+            <div class="appendix-note">
+                <p><sup>*</sup> Shifts are with respect to the red channel [b_shift, g_shift]</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Anonymous. No Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
