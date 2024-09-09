@@ -97,31 +97,31 @@
             <p>Below are some of the images that I have colorized using the above approach.</p>
             <figure>
                 <img src="output/cathedral_naive_False_output.jpg" alt="Cathedral" class="project-img">
-                <figcaption>Cathedral</figcaption>
+                <figcaption>Cathedral (Shifts: [-12.  -3.], [-7. -1.])</figcaption>
                 <img src="output/monastery_naive_False_output.jpg" alt="Boat" class="project-img">
-                <figcaption>Monastery</figcaption>
+                <figcaption>Monastery (Shifts: [-3. -2.], [-6. -1.])</figcaption>
                 <img src="output/tobolsk_naive_False_output.jpg" alt="Tobolsk" class="project-img">
-                <figcaption>Tobolsk</figcaption>
+                <figcaption>Tobolsk (Shifts: [-6. -3.], [-4. -1.])</figcaption>
                 <img src="output/lady_naive_False_output.jpg" alt="Lady" class="project-img" >
-                <figcaption>Lady</figcaption>
+                <figcaption>Lady (Shifts: [-112.  -11.], [-61.  -3.])</figcaption>
                 <img src="output/onion_church_naive_False_output.jpg" alt="Onion Church" class="project-img" >
-                <figcaption>Onion Church</figcaption>
+                <figcaption>Onion Church (Shifts: [-108.  -36.], [-57. -10.])</figcaption>
             </figure>
         <!-- Key Features Section -->
         <div class="section">
             <h2>Bells and Whistles</h2>
             <h3>Edge Detection</h3>
             <p>Instead of aligning the entire channels, I used cv2.Canny to detect edges and align those edges. This works very well on images with lots of edges like emir.tif. </p>
-            <h2>Sample Images</h2>
+            <h2>Sample Image</h2>
             <figure> 
                 <img src="output/emir_naive_False_output.jpg" alt="Emir without Edge Detection" class="project-img" >
-                <figcaption>Emir without Edge Detection</figcaption>
+                <figcaption>Emir without Edge Detection (Shifts: [-26. 829.], [-57. -17.])</figcaption>
                 <img src="output/emir_edge_False_output.jpg" alt="Emir with Edge Detection" class="project-img" >
-                <figcaption>Emir with Edge Detection</figcaption>
+                <figcaption>Emir with Edge Detection (Shifts: [-107.  -40.], [-58. -17.])</figcaption>
             </figure>
             <h3>Auto Cropping</h3>
             <p> An auto cropping algorithm is used to crop the unwanted visual effects of the postprocessed images. It will compare the intensities of the pixels between the three channels and actively detect white or black borders. The reserved region will be the rectangle bounding the largest connecting region. </p>
-            <h2>Sample Images</h2>
+            <h2>Sample Image</h2>
             <figure>
                 <img src="output/sculpture_edge_False_output.jpg" alt="Sculpture without Auto Cropping" class="project-img" >
                 <figcaption>Sculpture without Auto Cropping</figcaption>
