@@ -81,13 +81,11 @@
     <div class="container">
         <h1>CS180 Proj 1: Colorizing the Prokudin-Gorskii photo collection</h1>
         
-        <!-- Project Description Section -->
         <div class="section">
             <h2>Overview</h2>
             <p>The goal of this project is to take Prokudin-Gorskii's digitized glass plate images and reconstruct full-color images using image processing techniques. The primary challenge is to align the three color channel images (red, green, blue) extracted from a single plate, ensuring that the final composite image has minimal visual artifacts.</p>
         </div>
 
-        <!-- Approaches Section -->
         <div class="section">
             <h2>Approach</h2>
             <p>I choose to align the green and blue channels with the red channel using translation-based image alignment. A simple exhaustive search over small pixel displacements is employed to find the best alignment, using the sum of squared differences as the matching metric (the lower the better). To improve the efficiency , the pyramid search method is applied. This method involves scaling down the images and aligning them at coarser levels before refining the alignment at higher resolutions. Each level will pass on the alignment information to the next level and the search range will be halfed to lower the computational costs as the resolution is getting higher (the initial search range is set to [-20, 20] and the minimal serach range is [-2, 2]). Also the channels will be cropped slightly by 10% before begining the alignment process to ensure the algorithm is matching the actual contents instead of the borders of the images.</p>
@@ -107,7 +105,6 @@
                 <img src="output/onion_church_naive_False_output.jpg" alt="Onion Church" class="project-img" >
                 <figcaption>Onion Church (Shifts: [-108.  -36.], [-57. -10.])</figcaption>
             </figure>
-        <!-- Key Features Section -->
         <div class="section">
             <h2>Bells and Whistles</h2>
             <h3>Edge Detection</h3>
@@ -131,7 +128,6 @@
             <p> The algorithm will mostly be able to remove white and black orders and remove some colored borders. It is not perfect on every image</p>
         </div>
 
-        <!-- Final Product Section -->
         <div class="section">
             <h2>Final Images (with Edge Detection and Auto Cropping)</h2>
             <figure>
