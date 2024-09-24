@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Showcase: Exploring Image Processing Techniques</title>
-    <!-- Google Fonts for better typography -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <style>
         /* Reset some default browser styles */
@@ -163,7 +162,7 @@
                 </ul>
             </li>
             <li>
-                <p><strong>Edge Detection (Threshold = 0.1):</strong></p>
+                <p><strong>Edge Detection (Threshold = 0.25):</strong></p>
                 <ul>
                     <li>
                         To emphasize the prominent edges, I binarized the gradient magnitude image using a threshold of 0.25.
@@ -313,6 +312,14 @@
                     <li><img src="data/hybrid/tiger.jpg" alt="High Frequency Image"></li>
                     <li><img src="output/hybrid/hybrid3.jpg" alt="Hybrid Image"></li>
                 </ul>
+            </li>
+            <li> 
+                <p><strong>Example 4: Newpple (Failed)</strong></p>
+                <ul>
+                    <li> I combined the low frequencies of an apple image with the high frequencies of a Newton image, but the result was unsatisfactory. I suspect this is because the objects are too dissimilar (different kinds of objects), making it difficult to create a seamless hybrid. Additionally, the apple's frequency may already be quite low, so the Gaussian filter might not have made a significant impact. </li>
+                    <li><img src="data/hybrid/apple.jpg" alt="Low Frequency Image"></li>
+                    <li><img src="data/hybrid/newton.jpg" alt="High Frequency Image"></li>
+                    <li><img src="output/hybrid/hybrid2.jpg" alt="Hybrid Image"></li>
             </li>
         </ol>
         <p><strong>Frequency Analysis:</strong></p>
