@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Showcase: Exploring Image Processing Techniques</title>
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        /* Reset some default browser styles */
+        body, h1, h2, h3, p, ol, ul, li {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Apply a global box-sizing rule */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Body styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Container to center content and set max width */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Heading styles */
+        h1, h2, h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.75em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+
+        /* Paragraph styling */
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        /* Ordered and unordered lists */
+        ol, ul {
+            margin-left: 40px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        /* Image styling */
+        img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 10px auto;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for strong tags */
+        strong {
+            color: #2c3e50;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.75em;
+            }
+
+            h3 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="project-showcase-exploring-image-processing-techniques">
+            Project Showcase: Exploring Image Processing Techniques
+        </h1>
+
+        <h2 id="part-1-understanding-image-filters">Part 1: Understanding Image Filters</h2>
+
+        <h3 id="part-1-1-finite-difference-operator">Part 1.1: Finite Difference Operator</h3>
+        <p>
+            In this part, I experimented with basic finite difference filters to capture the gradients of an image. The goal was to identify changes in pixel intensity along the (x) and (y) axes, and then use these gradients to generate an edge map.
+        </p>
+        <ol>
+            <li>
+                <p><strong>Original Image:</strong></p>
+                <ul>
+                    <li>I started with the 'cameraman' image.</li>
+                    <li><img src="data/edge/cameraman.png" alt="Original Image"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Gradient in (x) Direction:</strong></p>
+                <ul>
+                    <li>
+                        I applied a filter (Dx = [1, -1]) to detect horizontal edges, highlighting changes along the (x)-axis.
+                    </li>
+                    <li><img src="output/edge/cameraman_dx.jpg" alt="Gradient in x Direction"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Gradient in (y) Direction:</strong></p>
+                <ul>
+                    <li>
+                        Similarly, I used a filter (Dy = [1, -1]^T) for vertical edges, capturing intensity shifts along the (y)-axis.
+                    </li>
+                    <li><img src="output/edge/cameraman_dy.jpg" alt="Gradient in y Direction"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Gradient Magnitude:</strong></p>
+                <ul>
+                    <li>
+                        By combining the horizontal and vertical gradients, I calculated the overall gradient magnitude (sqrt((df/dx)^2 + (df/dy)^2)), representing the edge strength at each pixel.
+                    </li>
+                    <li><img src="output/edge/cameraman_mag.jpg" alt="Gradient Magnitude"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Edge Detection (Threshold = 0.1):</strong></p>
+                <ul>
+                    <li>
+                        To emphasize the prominent edges, I binarized the gradient magnitude image using a threshold of 0.25.
+                    </li>
+                    <li><img src="output/edge/cameraman_binarized.jpg" alt="Binarized Gradient Magnitude"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3 id="part-1-2-derivative-of-gaussian-dog-filter">Part 1.2: Derivative of Gaussian (DoG) Filter</h3>
+        <p>
+            To reduce noise and achieve smoother edges, I employed the Derivative of Gaussian (DoG) filter. This filter smooths the image first, and then computes the gradients.
+        </p>
+        <ol>
+            <li>
+                <p><strong>Blurred Image:</strong></p>
+                <ul>
+                    <li>
+                        I started by blurring the original image using a Gaussian filter to suppress noise.
+                    </li>
+                    <li><img src="output/edge/cameraman_blur.jpg" alt="Blurred Image"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Gradients of the Blurred Image:</strong></p>
+                <ul>
+                    <li>
+                        I then applied the finite difference filters to the blurred image, producing smoother gradient images with reduced noise.
+                    </li>
+                    <li><img src="output/edge/cameraman_dog_x.jpg" alt="Gradient in x (Blurred)"></li>
+                    <li><img src="output/edge/cameraman_dog_y.jpg" alt="Gradient in y (Blurred)"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Smoothed Gradient Magnitude:</strong></p>
+                <ul>
+                    <li>
+                        The gradient magnitude calculated from the blurred image is less noisy compared to the one obtained earlier.
+                    </li>
+                    <li><img src="output/edge/cameraman_dog_mag.jpg" alt="Smoothed Gradient Magnitude"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Edge Detection (Threshold = 0.1):</strong></p>
+                <ul>
+                    <li>
+                        With a lower threshold, the edges are clearer and more distinct, while noise remains minimal.
+                    </li>
+                    <li><img src="output/edge/cameraman_dog_binarized.jpg" alt="Smoothed Edge Detection"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Alternative Approach: Direct DoG Filters</strong></p>
+                <ul>
+                    <li>
+                        Instead of separately blurring and then applying finite differences, I directly convolved the image with Derivative of Gaussian filters for (x) and (y) directions. This will significantly reduce the computational costs by utilizing the commutativity of convolution.
+                    </li>
+                    <li><img src="output/edge/cameraman_dog_filter_x.jpg" alt="DoG Filter in x"></li>
+                    <li><img src="output/edge/cameraman_dog_filter_y.jpg" alt="DoG Filter in y"></li>
+                    <li><img src="output/edge/cameraman_dog_mag.jpg" alt="DoG Gradient Magnitude"></li>
+                    <li><img src="output/edge/cameraman_dog_binarized.jpg" alt="Binarized DoG Magnitude (Threshold = 0.1)"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2 id="part-2-exploring-image-frequencies">Part 2: Exploring Image Frequencies</h2>
+
+        <h3 id="part-2-1-image-sharpening">Part 2.1: Image Sharpening</h3>
+        <p>
+            In this section, I explored the concept of image sharpening by enhancing the high-frequency details. The process, known as unsharp masking, involves subtracting a blurred version of the image from the original to highlight fine details.
+        </p>
+        <ol>
+            <li>
+                <strong>Original Images:</strong>
+                <ul>
+                    <li>I chose some images and prepared them for sharpening.</li>
+                    <li><img src="data/sharpening/taj.jpg" alt="Original Image"></li>
+                    <li><img src="data/sharpening/physics.jpg" alt="Original Image"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>High frequencies of the images (Original image - Low frequencies):</strong>
+                <ul>
+                    <li><img src="output/sharpening/taj_high_freq.jpg" alt="Hi freq Image"></li>
+                    <li><img src="output/sharpening/physics_high_freq.jpg" alt="Hi freq Image"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Sharpened Images with Different Intensities using unsharp mask filter ((1 + alpha)*delta - alpha*gaussian_kernel where delta is an impulse filter):</strong>
+                <ul>
+                    <li>
+                        By adjusting the sharpening intensity parameter (alpha), I produced varying levels of sharpness.
+                    </li>
+                    <li><img src="output/sharpening/taj_sharp_1.jpg" alt="Sharpened Image (Alpha = 1)"></li>
+                    <li><img src="output/sharpening/taj_sharp_2.jpg" alt="Sharpened Image (Alpha = 2)"></li>
+                    <li><img src="output/sharpening/taj_sharp_3.jpg" alt="Sharpened Image (Alpha = 3)"></li>
+                    <li><img src="output/sharpening/taj_sharp_4.jpg" alt="Sharpened Image (Alpha = 4)"></li>
+                    <li><img src="output/sharpening/taj_sharp_5.jpg" alt="Sharpened Image (Alpha = 5)"></li>
+                    <li><img src="output/sharpening/taj_sharp_10.jpg" alt="Sharpened Image (Alpha = 10)"></li>
+                    <li><img src="output/sharpening/physics_sharp_1.jpg" alt="Sharpened Image (Alpha = 1)"></li>
+                    <li><img src="output/sharpening/physics_sharp_2.jpg" alt="Sharpened Image (Alpha = 2)"></li>
+                    <li><img src="output/sharpening/physics_sharp_3.jpg" alt="Sharpened Image (Alpha = 3)"></li>
+                    <li><img src="output/sharpening/physics_sharp_4.jpg" alt="Sharpened Image (Alpha = 4)"></li>
+                    <li><img src="output/sharpening/physics_sharp_5.jpg" alt="Sharpened Image (Alpha = 5)"></li>
+                    <li><img src="output/sharpening/physics_sharp_10.jpg" alt="Sharpened Image (Alpha = 10)"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Blurring and Then Sharpening:</strong>
+                <ul>
+                    <li>
+                        I first blurred an image and then sharpened it to observe the changes. The resulting image appeared noisier, with exaggerated edges and reduced fine detail.
+                    </li>
+                    <li><img src="data/sharpening/doge.jpg" alt="Original Image"></li>
+                    <li><img src="output/sharpening/doge_blur.jpg" alt="Blurred Image"></li>
+                    <li><img src="output/sharpening/doge_sharp_1.jpg" alt="Blurred and Sharpened Image"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3 id="part-2-2-hybrid-images">Part 2.2: Hybrid Images</h3>
+        <p>
+            Hybrid images combine the low-frequency components of one image with the high-frequency components of another. These images appear differently depending on the viewing distance.
+        </p>
+        <ol>
+            <li>
+                <p><strong>Example 1: Derek and Nutmeg</strong></p>
+                <ul>
+                    <li>I combined the low frequencies of Derek with the high frequencies of Nutmeg the cat.</li>
+                    <li><img src="data/hybrid/derek.jpg" alt="Low Frequency Image"></li>
+                    <li><img src="data/hybrid/nutmeg.jpg" alt="High Frequency Image"></li>
+                    <li><img src="output/hybrid/hybrid.jpg" alt="Hybrid Image"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Example 2: Water Heisenberg</strong></p>
+                <ul>
+                    <li><img src="data/hybrid/heisenberg.jpg" alt="Low Frequency Image"></li>
+                    <li><img src="data/hybrid/waterwhite.png" alt="High Frequency Image"></li>
+                    <li><img src="output/hybrid/hybrid1.jpg" alt="Hybrid Image"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Example 3: Tiger Cat (Favorite)</strong></p>
+                <ul>
+                    <li><img src="data/hybrid/cat.jpg" alt="Low Frequency Image"></li>
+                    <li><img src="data/hybrid/tiger.jpg" alt="High Frequency Image"></li>
+                    <li><img src="output/hybrid/hybrid3.jpg" alt="Hybrid Image"></li>
+                </ul>
+            </li>
+        </ol>
+        <p><strong>Frequency Analysis:</strong></p>
+        <ol>
+            <li>
+                I visualized the frequency components of the images of Tiger Cat to illustrate how the hybrid effect is formed.
+                <ul>
+                    <li><img src="output/hybrid/fft/im1_gray.jpg" alt="Cat"></li>
+                    <li><img src="output/hybrid/fft/im2_gray.jpg" alt="Tiger"></li>
+                    <li><img src="output/hybrid/fft/low.jpg" alt="Cat Low"></li>
+                    <li><img src="output/hybrid/fft/high.jpg" alt="Tiger High"></li>
+                    <li><img src="output/hybrid/fft/hybrid_gray.jpg" alt="Hybrid"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3 id="bells-and-whistles">Bells and Whistles</h3>
+        <p>
+            I also experimented with color in hybrid images. I found that combining colors from both images yielded the most visually appealing results.
+        </p>
+        <ol>
+            <li>
+                <p><strong>All Black &amp; White:</strong></p>
+                <ul>
+                    <li><img src="output/hybrid/hybrid_gray.jpg" alt="All Black &amp; White"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Color from Low Frequency Image:</strong></p>
+                <ul>
+                    <li><img src="output/hybrid/hybrid_color_low.jpg" alt="Color from Low Frequency"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Color from High Frequency Image:</strong></p>
+                <ul>
+                    <li><img src="output/hybrid/hybrid_color_high.jpg" alt="Color from High Frequency"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Color from Both Images:</strong></p>
+                <ul>
+                    <li><img src="output/hybrid/hybrid_color_both.jpg" alt="Color from Both"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2 id="part-2-3-gaussian-and-laplacian-stacks">Part 2.3: Gaussian and Laplacian Stacks</h2>
+        <p>
+            I implemented Gaussian and Laplacian stacks to perform the multi-resolution blending of two images. Blending at each sub-band will allow a cleaner blend without ugly seams. I recreated a classic example (Figure 3.42) of multi-resolution blending using Gaussian and Laplacian stacks at different levels.
+        </p>
+        <ol>
+            <li>
+                <strong>Gaussian Stack of Apple:</strong>
+                <ul>
+                    <li><img src="output/blending/gaussian_stack1.jpg" alt="Gaussian Stack of Apple"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Gaussian Stack of Orange:</strong>
+                <ul>
+                    <li><img src="output/blending/gaussian_stack2.jpg" alt="Gaussian Stack of Orange"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Gaussian Stack of Mask:</strong>
+                <ul>
+                    <li><img src="output/blending/mask_stack.jpg" alt="Mask Stack"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Laplacian Stack of Apple:</strong>
+                <ul>
+                    <li><img src="output/blending/laplacian_stack1.jpg" alt="Laplacian Stack of Apple"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Half Blended Laplacian Stack of Apple:</strong>
+                <ul>
+                    <li><img src="output/blending/half_blended_laplacian1.jpg" alt="Laplacian Stack of Half Blended Apple"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Laplacian Stack of Blended Image:</strong>
+                <ul>
+                    <li><img src="output/blending/blended_laplacian.jpg" alt="Laplacian Stack of Blended Image"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Half Blended Laplacian Stack of Orange:</strong>
+                <ul>
+                    <li><img src="output/blending/half_blended_laplacian2.jpg" alt="Laplacian Stack of Half Blended Orange"></li>
+                </ul>
+            </li>
+            <li>
+                <strong>Laplacian Stack of Orange:</strong>
+                <ul>
+                    <li><img src="output/blending/laplacian_stack2.jpg" alt="Laplacian Stack of Orange"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2 id="part-2-4-multiresolution-blending">Part 2.4: Multiresolution Blending</h2>
+        <p>
+            For this final part, I blended images using the technique mentioned in the paper (G*L<sub>1</sub> + (1-G)*L<sub>2</sub>), which ensures a smooth transition between the two images at various frequency levels.
+        </p>
+        <ol>
+            <li>
+                <p><strong>Blending Example: The Oraple</strong></p>
+                <ul>
+                    <li>I blended an apple and an orange to create a smooth composite image.</li>
+                    <li><img src="data/blending/apple.jpeg" alt="Apple"></li>
+                    <li><img src="data/blending/orange.jpeg" alt="Orange"></li>
+                    <li><img src="output/blending/mask_oraple.jpg" alt="Mask"></li>
+                    <li><img src="output/blending/oraple.jpg" alt="Oraple"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Creative Blending:</strong></p>
+                <ul>
+                    <li>
+                        I experimented with different image pairs, such as blending Oppenheimer and a smiling mouth, to create fun and interesting composites. The result was a bit weird and artificial as the tone of the lips was very different. Also, the images might have different white balance. I think we need to implement some ML techniques to make it real.
+                    </li>
+                    <li><img src="data/blending/oppen.jpg" alt="Oppenheimer"></li>
+                    <li><img src="data/blending/mouth.jpg" alt="mouth"></li>
+                    <li><img src="output/blending/mask_smile_oppen.jpg" alt="Mask"></li>
+                    <li><img src="output/blending/smile_oppen.jpg" alt="Smiling Oppenheimer"></li>
+                    <li>
+                        Here I attached the head of a cat onto the body of a dog. The new species is called "Dogcat".
+                    </li>
+                    <li><img src="data/blending/cat.jpg" alt="cat"></li>
+                    <li><img src="data/blending/dog.jpg" alt="dog"></li>
+                    <li><img src="output/blending/mask_dogcat.jpg" alt="Mask"></li>
+                    <li><img src="output/blending/dogcat.jpg" alt="Dogcat"></li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>Laplacian stacks for Dogcat:</strong></p>
+                <ul>
+                    <li><img src="output/blending/laplacian_stack1_dogcat.jpg" alt="Laplacian Stack of Cat"></li>
+                    <li><img src="output/blending/half_blended_laplacian1_dogcat.jpg" alt="Laplacian Stack of Half Blended Cat"></li>
+                    <li><img src="output/blending/blended_laplacian_dogcat.jpg" alt="Laplacian Stack of Blended Image"></li>
+                    <li><img src="output/blending/half_blended_laplacian2_dogcat.jpg" alt="Laplacian Stack of Half Blended Dog"></li>
+                    <li><img src="output/blending/laplacian_stack2_dogcat.jpg" alt="Laplacian Stack of Dog"></li>
+                </ul>
+            </li>
+        </ol>
+
+        <p><strong>Reflection:</strong></p>
+        <p>
+            This project taught me the impact of different frequency components on image perception. Blending images at multiple scales produces smoother, more seamless results compared to simple overlay techniques. I learned many fundamentals of image processing and how our smartphones artificially enhance our images.
+        </p>
+    </div>
+</body>
+</html>
