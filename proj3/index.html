@@ -94,7 +94,7 @@
             margin: 10px 0;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="main-content">
@@ -138,50 +138,50 @@
 
         <h2 id="part-1-defining-correspondences">Part 1: Defining Correspondences</h2>
         <p>To begin, I manually selected 76 keypoints (excluding boundary points) on both the source face and the target face to establish correspondences for key features like the eyes, nose, and mouth. These correspondences ensured that the morphing process would be smooth. I used the <code>ginput</code> function to mark these points. Below is an example of the resulting keypoints and triangulation:</p>
-        <img src="D:\cs180_proj3\output\bidenharris.png" alt="Keypoints and triangulation">
+        <img src="output/bidenharris.png" alt="Keypoints and triangulation">
 
         <h2 id="part-2-computing-midway-face">Part 2: Computing the Mid-Way Face</h2>
         <p>To compute the mid-way face between my image and the target image, I computed the average position for each corresponding keypoint. Mathematically, given keypoints <code>p_i</code> from my face and <code>q_i</code> from the target face, the average keypoint location <code>m_i</code> is calculated as:</p>
         <p style="text-align: center;"><code>m_i = (p_i + q_i)/2</code></p>
         <p>Using these average positions, I warped both faces into this new shape. The warping process was the most challenging part, as it required morphing both images to match the average geometry through inverse affine transformations, followed by filling in the pixel colors using bilinear interpolation to ensure smooth transitions. Finally, I blended the colors of the warped images to produce a smooth mid-way face, resulting in an average representation that visually combines features from both original faces. Below are the original images and the resulting mid-way face:</p>
-        <img src="D:\cs180_proj3\output\midface.png" alt="Mid-way face">
+        <img src="output/midface.png" alt="Mid-way face">
 
         <h2 id="part-3-morph-sequence">Part 3: The Morph Sequence</h2>
         <p>I implemented a function called <code>morph(im1, im2, im1_pts, im2_pts, tri, warp_frac, dissolve_frac)</code> to generate 45 frames of the morph sequence from my face to the target face. Each frame involved adjusting the shape and blending the colors. When <code>warp_frac</code> and <code>dissolve_frac</code> are set to 0, the resulting frame is exactly the first image (<code>im1</code>), meaning there is no warping or blending applied. Conversely, when both <code>warp_frac</code> and <code>dissolve_frac</code> are set to 1, the resulting frame is fully transformed into the target image (<code>im2</code>), with complete warping and blending. Values between 0 and 1 create intermediate frames that gradually transition from the source to the target.</p>
-        <img src="D:\cs180_proj3\output\morph.gif" alt="Morph sequence">
+        <img src="output/morph.gif" alt="Morph sequence">
 
         <h2 id="part-4-mean-face-population">Part 4: The Mean Face of a Population</h2>
         <p>I used the <a href="https://web.archive.org/web/20210305094647/http://www2.imm.dtu.dk/~aam/datasets/datasets.html">Danes dataset</a>, which contains labeled facial images, to calculate the mean face of the neutral male population. I warped each individual face in the dataset to the average shape and then blended them together.</p>
-        <img src="D:\cs180_proj3\output\warped_faces.png" alt="Warped faces">
-        <img src="D:\cs180_proj3\output\average_face.png" alt="Average face">
+        <img src="output/warped_faces.png" alt="Warped faces">
+        <img src="output/average_face.png" alt="Average face">
 
         <p>Additionally, I warped my face into the average shape and also warped the average face into my facial geometry:</p>
-        <img src="D:\cs180_proj3\output\me_warped_to_average.png" alt="My face warped to average">
-        <img src="D:\cs180_proj3\output\average_warped_to_me.png" alt="Average face warped to me">
+        <img src="output/me_warped_to_average.png" alt="My face warped to average">
+        <img src="output/average_warped_to_me.png" alt="Average face warped to me">
 
         <h2 id="part-5-caricature">Part 5: Caricature</h2>
         <p>To create a caricature of myself, I exaggerated the differences between my face and the average face using the equation (mean_shape + (my_shape - mean_shape) * alpha). The negative alpha looked particularly weird.</p>
-        <img src="D:\cs180_proj3\output\Caricatures.png" alt="Caricatures">
+        <img src="output/Caricatures.png" alt="Caricatures">
 
         <h2 id="bells-and-whistles">Bells and Whistles</h2>
         <h3>PCA Analysis</h3>
         <p>I applied Principal Component Analysis (PCA) on the Dane dataset (the vectors are the flattened images) to analyze the major components of facial variation and understand how different facial features contribute to overall facial structure.</p>
-        <img src="D:\cs180_proj3\output\eigenfaces.png" alt="Eigenfaces">
+        <img src="output/eigenfaces.png" alt="Eigenfaces">
 
         <p>I created a random face using the eigenfaces by randomly assigning coefficients to the basis.</p>
-        <img src="D:\cs180_proj3\output\randomface.png" alt="Random face">
+        <img src="output/randomface.png" alt="Random face">
 
         <p>Also, I created various caricatures with different numbers of principal components exaggerated by a factor of 3. I think principal components have much greater impact on the overall image, and it would be better to tweak those principal components to change the major features.</p>
-        <img src="D:\cs180_proj3\output\caricatures_amplified.png" alt="Caricatures with amplified principal components">
+        <img src="output/caricatures_amplified.png" alt="Caricatures with amplified principal components">
 
         <h3>Gender Transformation</h3>
         <p>I transformed my face from male to female using <a href="https://pmsol3.wordpress.com/2009/10/10/world-of-facial-averages-east-southeast-asia-pacific-islander/">the average face of Han Chinese woman</a> with three different methods: shape only (morphing my facial geometry to the mean face), appearance only (using my shape but cross-dissolving with the mean face), and both shape and appearance (warping and cross-dissolving).</p>
-        <img src="D:\cs180_proj3\output\mewoman.png" alt="My face transformed to female">
-        <img src="D:\cs180_proj3\output\gender_change.png" alt="Gender transformation comparison">
+        <img src="output/mewoman.png" alt="My face transformed to female">
+        <img src="output/gender_change.png" alt="Gender transformation comparison">
 
         <h3>Morphing Music Video</h3>
         <p>I created a morphing music video featuring all U.S. presidents (because they are all in public domain and will soon get updated). I utilized <code>shape_predictor_68_face_landmarks.dat</code> to automatically mark keypoints and crop the faces and then mark the keypoints again on those cropped images.</p>
-        <img src="D:\cs180_proj3\output\presidents_morph.gif" alt="Presidents morphing">
+        <img src="output/presidents_morph.gif" alt="Presidents morphing">
 
         <p>Here is the YouTube link of the music version featuring Star-Spangled Banner in Minor Key: <a href="https://youtube.com/shorts/I3sMdrShtg8?feature=share">Watch on YouTube</a>.</p>
 
