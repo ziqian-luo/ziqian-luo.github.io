@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project3: Face Morphing</title>
+    <meta name="author" content="Ziqian Luo">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #ff7f50, #ff6347, #ffd700);
+            background-size: 400% 400%;
+            animation: gradientScroll 15s ease infinite;
+        }
+        @keyframes gradientScroll {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        .main-content {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2, h3 {
+            margin: 20px 0;
+            color: #333;
+        }
+        h3.author {
+            color: #ccc;
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        p, ul {
+            text-align: justify;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        ul {
+            text-align: left;
+            padding: 0 20px;
+        }
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+        .content-table {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .content-table ul {
+            list-style: none;
+            padding: 0;
+        }
+        .content-table ul li {
+            margin: 10px 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content">
+        <header>
+            <h1>CS180 Project3: Face Morphing</h1>
+            <h3 class="author">Author: Ziqian Luo</h3>
+        </header>
+
+        <div class="content-table">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#key-objectives">Key Objectives</a></li>
+                <li><a href="#techniques-used">Techniques Used</a></li>
+                <li><a href="#part-1-defining-correspondences">Part 1: Defining Correspondences</a></li>
+                <li><a href="#part-2-computing-midway-face">Part 2: Computing the Mid-Way Face</a></li>
+                <li><a href="#part-3-morph-sequence">Part 3: The Morph Sequence</a></li>
+                <li><a href="#part-4-mean-face-population">Part 4: The Mean Face of a Population</a></li>
+                <li><a href="#part-5-caricature">Part 5: Caricature</a></li>
+                <li><a href="#bells-and-whistles">Bells and Whistles</a></li>
+                <li><a href="#conclusion">Conclusion</a></li>
+            </ul>
+        </div>
+        
+        <h2 id="overview">Overview</h2>
+        <p>This project involved creating an animation that morphs an individual's face into another individual's face, calculating the mean face of a population, and generating a caricature of myself by exaggerating deviations from the average. The morphing process was achieved by warping the image shapes and smoothly blending colors.</p>
+
+        <h3 id="key-objectives">Key Objectives</h3>
+        <ul>
+            <li>Generate an animation morphing a person's face into another person's face.</li>
+            <li>Calculate the mean face of a population.</li>
+            <li>Create a caricature of myself based on deviations from the population mean.</li>
+        </ul>
+
+        <h3 id="techniques-used">Techniques Used</h3>
+        <ul>
+            <li>Facial keypoint selection and triangulation</li>
+            <li>Affine transformations for image warping</li>
+            <li>Cross-dissolve for color blending</li>
+        </ul>
+
+        <h2 id="part-1-defining-correspondences">Part 1: Defining Correspondences</h2>
+        <p>To begin, I manually selected 76 keypoints (excluding boundary points) on both the source face and the target face to establish correspondences for key features like the eyes, nose, and mouth. These correspondences ensured that the morphing process would be smooth. I used the <code>ginput</code> function to mark these points. Below is an example of the resulting keypoints and triangulation:</p>
+        <img src="D:\cs180_proj3\output\bidenharris.png" alt="Keypoints and triangulation">
+
+        <h2 id="part-2-computing-midway-face">Part 2: Computing the Mid-Way Face</h2>
+        <p>To compute the mid-way face between my image and the target image, I computed the average position for each corresponding keypoint. Mathematically, given keypoints <code>p_i</code> from my face and <code>q_i</code> from the target face, the average keypoint location <code>m_i</code> is calculated as:</p>
+        <p style="text-align: center;"><code>m_i = (p_i + q_i)/2</code></p>
+        <p>Using these average positions, I warped both faces into this new shape. The warping process was the most challenging part, as it required morphing both images to match the average geometry through inverse affine transformations, followed by filling in the pixel colors using bilinear interpolation to ensure smooth transitions. Finally, I blended the colors of the warped images to produce a smooth mid-way face, resulting in an average representation that visually combines features from both original faces. Below are the original images and the resulting mid-way face:</p>
+        <img src="D:\cs180_proj3\output\midface.png" alt="Mid-way face">
+
+        <h2 id="part-3-morph-sequence">Part 3: The Morph Sequence</h2>
+        <p>I implemented a function called <code>morph(im1, im2, im1_pts, im2_pts, tri, warp_frac, dissolve_frac)</code> to generate 45 frames of the morph sequence from my face to the target face. Each frame involved adjusting the shape and blending the colors. When <code>warp_frac</code> and <code>dissolve_frac</code> are set to 0, the resulting frame is exactly the first image (<code>im1</code>), meaning there is no warping or blending applied. Conversely, when both <code>warp_frac</code> and <code>dissolve_frac</code> are set to 1, the resulting frame is fully transformed into the target image (<code>im2</code>), with complete warping and blending. Values between 0 and 1 create intermediate frames that gradually transition from the source to the target.</p>
+        <img src="D:\cs180_proj3\output\morph.gif" alt="Morph sequence">
+
+        <h2 id="part-4-mean-face-population">Part 4: The Mean Face of a Population</h2>
+        <p>I used the <a href="https://web.archive.org/web/20210305094647/http://www2.imm.dtu.dk/~aam/datasets/datasets.html">Danes dataset</a>, which contains labeled facial images, to calculate the mean face of the neutral male population. I warped each individual face in the dataset to the average shape and then blended them together.</p>
+        <img src="D:\cs180_proj3\output\warped_faces.png" alt="Warped faces">
+        <img src="D:\cs180_proj3\output\average_face.png" alt="Average face">
+
+        <p>Additionally, I warped my face into the average shape and also warped the average face into my facial geometry:</p>
+        <img src="D:\cs180_proj3\output\me_warped_to_average.png" alt="My face warped to average">
+        <img src="D:\cs180_proj3\output\average_warped_to_me.png" alt="Average face warped to me">
+
+        <h2 id="part-5-caricature">Part 5: Caricature</h2>
+        <p>To create a caricature of myself, I exaggerated the differences between my face and the average face using the equation (mean_shape + (my_shape - mean_shape) * alpha). The negative alpha looked particularly weird.</p>
+        <img src="D:\cs180_proj3\output\Caricatures.png" alt="Caricatures">
+
+        <h2 id="bells-and-whistles">Bells and Whistles</h2>
+        <h3>PCA Analysis</h3>
+        <p>I applied Principal Component Analysis (PCA) on the Dane dataset (the vectors are the flattened images) to analyze the major components of facial variation and understand how different facial features contribute to overall facial structure.</p>
+        <img src="D:\cs180_proj3\output\eigenfaces.png" alt="Eigenfaces">
+
+        <p>I created a random face using the eigenfaces by randomly assigning coefficients to the basis.</p>
+        <img src="D:\cs180_proj3\output\randomface.png" alt="Random face">
+
+        <p>Also, I created various caricatures with different numbers of principal components exaggerated by a factor of 3. I think principal components have much greater impact on the overall image, and it would be better to tweak those principal components to change the major features.</p>
+        <img src="D:\cs180_proj3\output\caricatures_amplified.png" alt="Caricatures with amplified principal components">
+
+        <h3>Gender Transformation</h3>
+        <p>I transformed my face from male to female using <a href="https://pmsol3.wordpress.com/2009/10/10/world-of-facial-averages-east-southeast-asia-pacific-islander/">the average face of Han Chinese woman</a> with three different methods: shape only (morphing my facial geometry to the mean face), appearance only (using my shape but cross-dissolving with the mean face), and both shape and appearance (warping and cross-dissolving).</p>
+        <img src="D:\cs180_proj3\output\mewoman.png" alt="My face transformed to female">
+        <img src="D:\cs180_proj3\output\gender_change.png" alt="Gender transformation comparison">
+
+        <h3>Morphing Music Video</h3>
+        <p>I created a morphing music video featuring all U.S. presidents (because they are all in public domain and will soon get updated). I utilized <code>shape_predictor_68_face_landmarks.dat</code> to automatically mark keypoints and crop the faces and then mark the keypoints again on those cropped images.</p>
+        <img src="D:\cs180_proj3\output\presidents_morph.gif" alt="Presidents morphing">
+
+        <p>Here is the YouTube link of the music version featuring Star-Spangled Banner in Minor Key: <a href="https://youtube.com/shorts/I3sMdrShtg8?feature=share">Watch on YouTube</a>.</p>
+
+        <h2 id="conclusion">Conclusion</h2>
+        <p>This project provided hands-on experience with various image processing techniques, including affine transformations, triangulation, and color blending, to achieve face morphing, mean face calculations, and caricature generation. It deepened my understanding of facial structure representation and morphing methods.</p>
+        <footer>
+            &copy; 2024 Ziqian Luo. No Rights Reserved.
+        </footer>
+    </div>
+</body>
+</html>
