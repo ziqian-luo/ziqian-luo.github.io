@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project: Image Warping and Mosaicing</title>
+    <meta name="author" content="Ziqian Luo">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #ff7f50, #ff6347, #ffd700);
+            background-size: 400% 400%;
+            animation: gradientScroll 15s ease infinite;
+        }
+        @keyframes gradientScroll {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        .main-content {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2, h3 {
+            margin: 20px 0;
+            color: #333;
+        }
+        h3.author {
+            color: #ccc;
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        p, ul {
+            text-align: justify;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        ul {
+            text-align: left;
+            padding: 0 20px;
+        }
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+        .content-table {
+            margin: 20px auto;
+            text-align: center;
+            width: fit-content;
+        }
+        .content-table ul {
+            list-style: none;
+            padding: 0;
+        }
+        .content-table ul li {
+            margin: 10px 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js">
+    </script>
+</head>
+<body>
+    <div class="main-content">
+        <header>
+            <h1>CS180 Project 4A: Image Warping and Mosaicing</h1>
+            <h3 class="author">Author: Ziqian Luo</h3>
+        </header>
+
+        <div class="content-table">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#recover-homographies">Recover Homographies</a></li>
+                <li><a href="#rectification">Image Rectification</a></li>
+                <li><a href="#blend-mosaic">Blend the Images into a Mosaic</a></li>
+            </ul>
+        </div>
+
+        <h2 id="recover-homographies">Recover Homographies</h2>
+        <p>To align the images correctly, I computed the homography matrix <code>H</code> that transforms the coordinates from one image to another. The homography relates two images with the equation <code>q = H p</code>, where <code>q</code> and <code>p</code> are points in homogeneous coordinates. I used at least four point correspondences to estimate <code>H</code>, and I solved for the matrix using Singular Value Decomposition (SVD) to ensure numerical stability and accuracy. Below is an example of how the homography matrix is defined and used:</p>
+
+        <p>Let the homography matrix be
+            \[ 
+            H = \begin{bmatrix} h_1 & h_2 &
+            h_3 \\ h_4 & h_5 & h_6 \\ h_7 & h_8 & 1
+            \end{bmatrix} 
+            \]
+        </p>
+        <p>Given a point \((x, y)\) in the source image and its corresponding point \((x', y')\) in the reference image, we can write the homography equation as
+            \[
+            \begin{bmatrix} x' \\ y' \\ w
+            \end{bmatrix} = \begin{bmatrix} h_1 & h_2 & h_3 \\ h_4 & h_5
+            & h_6 \\ h_7 & h_8 & 1 \end{bmatrix} \begin{bmatrix} x \\ y
+            \\ 1 \end{bmatrix}
+            \]
+        </p> 
+        <p>Given at least four point correspondences, we can write the above equation for each pair of points.
+            Let  
+            \[
+            A = \begin{bmatrix} 
+            x_1 & y_1 & 1 & 0 & 0 & 0 & -x'_1 x_1 & -x'_1 y_1 \\ 
+            0 & 0 & 0 & x_1 & y_1 & 1 & -y'_1 x_1 & -y'_1 y_1 \\ 
+            x_2 & y_2 & 1 & 0 & 0 & 0 & -x'_2 x_2 & -x'_2 y_2 \\ 
+            0 & 0 & 0 & x_2 & y_2 & 1 & -y'_2 x_2 & -y'_2 y_2 \\ 
+            & & & &  \vdots
+            \end{bmatrix}
+            \] 
+        </p>
+        <p> We can see that \[
+            A\begin{bmatrix} h_1 \\ h_2 \\ h_3 \\ h_4 \\ h_5 \\ h_6 \\ h_7 \\ h_8 
+            \end{bmatrix} =
+            \begin{bmatrix}
+            x'_1 \\ y'_1 \\ x'_2 \\ y'_2 \\ \vdots
+            \end{bmatrix}
+            \]
+            To get \(H\), we can apply SVD on \(A\). The elements of the last column of \(V\) will be the elements of \(H\) since it corresponds to the smallest singular value.
+        </p>
+
+        <h2 id="rectification">Image Rectification</h2>
+        <p>This process involved taking an image of a rectangular object and warping it such that the object appears perfectly rectangular in the final output. I used the computed homography from source points to reference points (I manually defined the reference points) to align the object correctly. I applied inverse warping along with interpolation to accurately map the pixels to their new locations. Additionally, I added an alpha channel to cover any unwanted parts of the image. Below is the original image and the rectified result:</p>
+        <img src="results\rectification1.png" alt="rectification1">
+        <img src="results\rectification2.png" alt="rectification2">
+
+        <h2 id="blend-mosaic">Blend the Images into a Mosaic</h2>
+        <p>Here are the steps to blend two images seamlessly:</p>
+
+        <ol>
+            <li><strong>Compute Homography Matrix</strong>:
+                <ul>
+                    <li>Uses corresponding points (<code>src_pts</code> and <code>ref_pts</code>) to calculate the homography matrix <code>H</code>.</li>
+                </ul>
+            </li>
+            <li><strong>Determine Output Image Size</strong>:
+                <ul>
+                    <li>Transforms the source image corners and combines them with reference image corners to calculate dimensions and translation.</li>
+                </ul>
+            </li>
+            <li><strong>Compute Translation Matrix</strong>:
+                <ul>
+                    <li>Generates a translation matrix <code>T</code> and determines the output image's height, width, and offsets.</li>
+                </ul>
+            </li>
+            <li><strong>Apply Translation to Homography</strong>:
+                <ul>
+                    <li>Multiplies the translation matrix <code>T</code> with <code>H</code> to get <code>H_translated</code>.</li>
+                </ul>
+            </li>
+            <li><strong>Warp Source Image</strong>:
+                <ul>
+                    <li>Applies <code>H_translated</code> to align the source image with the reference image.</li>
+                </ul>
+            </li>
+            <li><strong>Create Canvas for Reference Image</strong>:
+                <ul>
+                    <li>Warps the reference image using <code>T</code> to fit onto the canvas.</li>
+                </ul>
+            </li>
+            <li><strong>Extract Alpha Channels</strong>:
+                <ul>
+                    <li>Retrieves the alpha channels from both the canvas and warped source image.</li>
+                </ul>
+            </li>
+            <li><strong>Determine Overlapping and Non-Overlapping Regions</strong>:
+                <ul>
+                    <li>Creates masks for overlapping and unique regions.</li>
+                </ul>
+            </li>
+            <li><strong>Create Blending Mask</strong>:
+                <ul>
+                    <li>Combines masks to define blending behavior.</li>
+                </ul>
+            </li>
+            <li><strong>Blend the Images</strong>:
+                <ul>
+                    <li>Uses the <code>blend_images</code> function from project2 (multiresolution blending) with the <code>blend_mask</code> to create <code>blended_img</code>.</li>
+                </ul>
+            </li>
+            <li><strong>Create and Add Alpha Channel to Blended Image</strong>:
+                <ul>
+                    <li>Constructs an alpha channel and combines it with the RGB blended image.</li>
+                </ul>
+            </li>
+        </ol>
+            
+        <p>Below is an example of the original images and the final mosaic:</p>
+        <img src="results\src1.png" alt="Source Image 1">
+        <img src="results\mosaic1.png" alt="Mosaic 1">
+        <img src="results\src2.png" alt="Source Image 2">
+        <img src="results\mosaic2.png" alt="Mosaic 2">
+        <img src="results\src3.png" alt="Source Image 3">
+        <img src="results\mosaic3.png" alt="Mosaic 3">
+
+        <p> Here are the laplacian stacks in the blending process</p>
+        <img src="results\lap11.png" alt="Laplacian Stack 1">
+        <img src="results\lap12.png" alt="Laplacian Stack 2">
+        <img src="results\lap21.png" alt="Laplacian Stack 3">
+        <img src="results\lap22.png" alt="Laplacian Stack 4">
+        <img src="results\lap31.png" alt="Laplacian Stack 5">
+        <img src="results\lap32.png" alt="Laplacian Stack 6">
+
+        <p> The images turned out fairly well with multiresolution blending, with no visible seams. However, the second mosaic still shows some defects with many correspondences defined, which is due to the complexity of the images.</p>
+        <footer>
+            &copy; 2024 Ziqian Luo. No Rights Reserved.
+        </footer>
+    </div>
+</body>
+</html>
