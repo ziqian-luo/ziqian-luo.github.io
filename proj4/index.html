@@ -103,7 +103,7 @@
 <body>
     <div class="main-content">
         <header>
-            <h1>CS180 Project 4A: Image Warping and Mosaicing</h1>
+            <h1>CS180 Project 4: Auto Stitching Photo Mosaics</h1>
             <h3 class="author">Author: Ziqian Luo</h3>
         </header>
 
@@ -113,6 +113,16 @@
                 <li><a href="#recover-homographies">Recover Homographies</a></li>
                 <li><a href="#rectification">Image Rectification</a></li>
                 <li><a href="#blend-mosaic">Blend the Images into a Mosaic</a></li>
+                <li><a href="#corner-detection">Detect Corners using Harris</a></li>
+                <li><a href="#ANMS">Adaptive Non-Maximal Suppression</a></li>
+                <li><a href="#feature-extraction">Feature Descriptor Extraction</a></li>
+                <li><a href="#feature-matching">Feature Matching using NNs and Lowe's Ratio Test</a></li>
+                <li><a href="#ransac">RANSAC for Robust Feature Matching</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#bell-whistles1">Bell & Whistles: Multiscale Features</a></li>
+                <li><a href="#bell-whistles2">Bell & Whistles: Rotation-Invariant Features</a></li>
+                <li><a href="#bell-whistles3">Bell & Whistles: Auto Matching</a></li>
+                <li><a href="#reflection">Reflection</a></li>
             </ul>
         </div>
 
@@ -200,27 +210,25 @@
                     <li>Retrieves the alpha channels from both the canvas and warped source image.</li>
                 </ul>
             </li>
-            <li><strong>Determine Overlapping and Non-Overlapping Regions</strong>:
+            <li><strong>Compute Distance Transforms</strong>:
                 <ul>
-                    <li>Creates masks for overlapping and unique regions.</li>
+                    <li>Calculates the Euclidean distance transform for the alpha channels of both images, where each pixel's value represents the distance to the nearest edge of the image region.</li>
                 </ul>
             </li>
-            <li><strong>Create Blending Mask</strong>:
+            <li><strong>Create Blending Mask with Two-Band Blending</strong>:
                 <ul>
-                    <li>Combines masks to define blending behavior.</li>
-                </ul>
-            </li>
-            <li><strong>Blend the Images</strong>:
-                <ul>
-                    <li>Uses the <code>blend_images</code> function from project2 (multiresolution blending) with the <code>blend_mask</code> to create <code>blended_img</code>.</li>
+                    <li>Uses a low-pass filter (Gaussian blur) to separate smooth regions and a high-pass filter to retain details.</li>
+                    <li>For the high-pass blend, uses the maximum distance transform value between the two images to select the sharper details.</li>
+                    <li>For the low-pass blend, combines the images using a weighted ratio of the distance transforms to smoothly blend overlapping areas.</li>
                 </ul>
             </li>
             <li><strong>Create and Add Alpha Channel to Blended Image</strong>:
                 <ul>
-                    <li>Constructs an alpha channel and combines it with the RGB blended image.</li>
+                    <li>Constructs an alpha channel for the final blended image by combining non-zero regions from both images and adds it to the RGB blended result.</li>
                 </ul>
             </li>
         </ol>
+        
             
         <p>Below is an example of the original images and the final mosaic:</p>
         <img src="results\src1.png" alt="Source Image 1">
@@ -230,18 +238,69 @@
         <img src="results\src3.png" alt="Source Image 3">
         <img src="results\mosaic3.png" alt="Mosaic 3">
 
-        <p> Here are the laplacian stacks in the blending process</p>
-        <img src="results\lap11.png" alt="Laplacian Stack 1">
-        <img src="results\lap12.png" alt="Laplacian Stack 2">
-        <img src="results\lap21.png" alt="Laplacian Stack 3">
-        <img src="results\lap22.png" alt="Laplacian Stack 4">
-        <img src="results\lap31.png" alt="Laplacian Stack 5">
-        <img src="results\lap32.png" alt="Laplacian Stack 6">
+        <p> Here are the distance transforms, low-pass blended, and high-pass blended images for the second mosaic. </p>
+        <img src="results\distances.png" alt="Distance Transform">
+        <img src="results\blended.png" alt="Blended">
 
-        <p> The images turned out fairly well with multiresolution blending, with no visible seams. However, the second mosaic still shows some defects with many correspondences defined, which is due to the complexity of the images.</p>
-        <footer>
-            &copy; 2024 Ziqian Luo. No Rights Reserved.
-        </footer>
+        <p> The images turned out fairly well with multiresolution blending.</p>
+
+        <h2 id="corner-detection">Harris Corner Detection</h2>
+        <p>I used sample code for Harris Corner Detection and, by adjusting the parameters, identified key corners in the image.</p>
+        <img src="resultsb/harris.png" alt="Detected Corners">
+        
+        <h2 id="ANMS">Adaptive Non-Maximal Suppression (ANMS)</h2>
+        <p>I implemented the Adaptive Non-Maximal Suppression (ANMS) algorithm to refine the detected corners by reducing their number. This algorithm sorts corners based on response values and iteratively removes those that are too close. The distance threshold is determined by the smallest distance to the nearest corner with a higher response value. Below is the result of applying ANMS to the Harris-detected corners:</p>
+        <img src="resultsb/anms.png" alt="ANMS Result">
+        
+        <h2 id="feature-extraction">Feature Descriptor Extraction</h2>
+        <p>Feature descriptors were obtained by extracting 40x40 patches around each corner, downsampling them to 8x8, and normalizing them to zero mean. Prior to extraction, the image was blurred to minimize noise.</p>
+        <img src="resultsb/des.png" alt="Feature Descriptors">
+        
+        <h2 id="feature-matching">Feature Matching with NN and Lowe's Ratio Test</h2>
+        <p>To match feature descriptors, I computed the 1-NN and 2-NN for each feature patch, representing them as 64-dimensional vectors and using Euclidean distance with a KD tree. Matching is established using Lowe's Ratio Test, where the distance to the 1-NN is divided by the distance to the 2-NN and considered valid if the ratio is below a specified threshold. Matches can be further refined by discarding those where the distance to the second nearest neighbor is below the average outlier distance, as suggested in the referenced paper.</p>
+        <img src="resultsb/goodmatch.png" alt="Initial Feature Matches">
+        <img src="resultsb/filteredmatch.png" alt="Refined Feature Matches">
+        
+        <h2 id="ransac">RANSAC for Robust Feature Matching</h2>
+        <p>I applied the RANSAC algorithm, as covered in class, to filter out mismatches and identify the best homography matrix. This involves randomly selecting four matches to compute the homography, then applying it across matches and counting inliers within a specified threshold.</p>
+        <img src="resultsb/ransacmatch.png" alt="Inliers after RANSAC">
+        
+        <h2 id="results">Final Results</h2>
+        <p>Below are the results comparing manual and automated methods:</p>
+        <img src="results/mosaic1.png" alt="Manual Match 1">
+        <img src="resultsb/mosaic1.png" alt="Automated Match 1">
+        <img src="results/mosaic2.png" alt="Manual Match 2">
+        <img src="resultsb/mosaic2.png" alt="Automated Match 2">
+        <img src="results/mosaic3.png" alt="Manual Match 3">
+        <img src="resultsb/mosaic3.png" alt="Automated Match 3">
+        
+        <h2 id="bell-whistles1">Bell & Whistles: Multiscale Feature Extraction</h2>
+        <p>I implemented multiscale feature extraction by applying Gaussian blurring to the image and downsampling it by a factor of two. Features were then extracted from each scale and combined to enhance the final feature descriptors, showing improvements over the single-scale approach.</p>
+        <img src="resultsb/bwmulti0.png" alt="Multiscale Features">
+        <img src="resultsb/bwmulti1.png" alt="Multiscale Features">
+        <img src="resultsb/bwmulti2.png" alt="Multiscale Features">
+        <img src="resultsb/bwmulti3.png" alt="Multiscale Features">
+        <img src="resultsb/bwmatch.png" alt="Multiscale Matched Features">
+        
+        <h2 id="bell-whistles2">Bell & Whistles: Rotation-Invariant Features</h2>
+        <p>To make the feature extraction rotation-invariant, I computed the gradient at each corner and aligned the image to extract features that remain stable under rotation.</p>
+        <img src="resultsb/bwarrow.png" alt="Rotation-Invariant Feature Visualization">
+        <img src="resultsb/bwpatch.png" alt="Rotation-Invariant Feature Patches">
+        <img src="resultsb/bwdes.png" alt="Rotation-Invariant Descriptors">
+        
+        <h2 id="bell-whistles3">Bell & Whistles: Automatic Panorama Matching</h2>
+        <p>To create an automated panorama detection process for unordered images, I began by calculating robust correspondences between each image pair using RANSAC. Images with enough correspondences were grouped as part of the same panorama, forming nodes in a graph where each connected component represents a unique panorama. Within each component, I used a maximum spanning tree (MST) to prioritize the strongest connections, reducing redundancy by minimizing the number of image pairs needed to stitch the panorama. To determine the ideal base image, I calculated the betweenness centrality of each node in the MST, selecting the image with the highest centrality as the anchor, thereby minimizing transformation complexity during stitching. This approach builds on techniques from <a href="https://inst.eecs.berkeley.edu/~cs180/fa23/upload/files/proj4B/alec.li/">Alec Li's Project 4B writeup</a>.</p>
+
+        <img src="resultsb/bwimages.png" alt="Detected Image Pairs for Panorama">
+        <img src="resultsb/bwgraph.png" alt="Panorama Graph Structure">
+        <img src="resultsb/bwc1.png" alt="Automated Panorama Stitching">
+        <img src="resultsb/bwc2.png" alt="Automated Panorama Stitching">
+        <img src="resultsb/bwc3.png" alt="Automated Panorama Stitching">
+        
+        <h2 id="reflection">Reflection</h2>
+        <p>This project provided a valuable learning experience. It strengthened my understanding of image warping, stitching, and feature extraction, while also showing me how useful graph algorithms like maximum spanning trees and centrality can be for organizing and simplifying panorama detection. I learned the importance of stability in homography calculations and saw the benefits of using multiresolution blending along with features that are both scale- and rotation-invariant. Working through the challenges of building and refining these techniques was both demanding and rewarding, and I’m excited to apply them in future projects.</p>
+        
+        <footer>&copy; 2024 Ziqian Luo. No Rights Reserved.</footer>
     </div>
 </body>
 </html>
