@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Project: Diffusion Models Exploration</title>
+    <meta name="author" content="Your Name">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #ff7f50, #ff6347, #ffd700);
+            background-size: 400% 400%;
+            animation: gradientScroll 15s ease infinite;
+        }
+        @keyframes gradientScroll {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        .main-content {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2, h3 {
+            margin: 20px 0;
+            color: #333;
+        }
+        h3.author {
+            color: #ccc;
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        p, ul {
+            text-align: justify;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        ul {
+            text-align: left;
+            padding: 0 20px;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+        .content-table {
+            margin: 20px auto;
+            text-align: center;
+            width: fit-content;
+        }
+        .content-table ul {
+            list-style: none;
+            padding: 0;
+        }
+        .content-table ul li {
+            margin: 10px 0;
+        }
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content">
+        <header>
+            <h1>CS180 Project 5: Diffusion Models Exploration</h1>
+            <h3 class="author">Author: Ziqian Luo</h3>
+        </header>
+
+        <div class="content-table">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#setup">Part 0: Setup</a></li>
+                <li><a href="#sampling-loops">Part 1: Sampling Loops</a></li>
+                <li><a href="#forward-process">Part 1.1: Implementing the Forward Process</a></li>
+                <li><a href="#classical-denoising">Part 1.2: Classical Denoising</a></li>
+                <li><a href="#one-step-denoising">Part 1.3: One-Step Denoising</a></li>
+                <li><a href="#iterative-denoising">Part 1.4: Iterative Denoising</a></li>
+                <li><a href="#diffusion-model-sampling">Part 1.5: Diffusion Model Sampling</a></li>
+                <li><a href="#cfg">Part 1.6: Classifier-Free Guidance (CFG)</a></li>
+                <li><a href="#image-to-image">Part 1.7: Image-to-Image Translation</a></li>
+                <li><a href="#visual-anagrams">Part 1.8: Visual Anagrams</a></li>
+                <li><a href="#hybrid-images">Part 1.9: Hybrid Images</a></li>
+                <li><a href="#training-unet">Part 2: Training a Single-Step Denoising UNet</a></li>
+                <li><a href="#unet-implementation">Part 2.1: Implementing the UNet</a></li>
+                <li><a href="#using-unet">Part 2.2: Using the UNet to Train a Denoiser</a></li>
+                <li><a href="#training">Part 2.2.1: Training</a></li>
+                <li><a href="#out-of-distribution">Part 2.2.2: Out-of-Distribution Testing</a></li>
+                <li><a href="#training-diffusion">Part 3: Training a Diffusion Model</a></li>
+                <li><a href="#time-conditioning">Part 3.1: Adding Time Conditioning to UNet</a></li>
+                <li><a href="#training-time-conditioned">Part 3.2: Training the Time-Conditioned UNet</a></li>
+                <li><a href="#sampling-time-conditioned">Part 3.3: Sampling from the Time-Conditioned UNet</a></li>
+                <li><a href="#class-conditioning">Part 3.4: Adding Class-Conditioning to UNet</a></li>
+                <li><a href="#sampling-class-conditioned">Part 3.5: Sampling from the Class-Conditioned UNet</a></li>
+                <li><a href="#conclusion">Conclusion</a></li>
+            </ul>
+        </div>
+
+        <h2 id="setup">Part 0: Setup</h2>
+        <p> I used two different values for <code>num_inference_steps</code>: 40 and 100.
+            I noticed that increasing the number of inference steps improved the quality of the generated images, making them more detailed and visually appealing.
+            I used a fixed random seed 42.</p>
+        <img src="defu.png" alt="Setup and Experimentation Process">
+        <img src="defu2.png" alt="Setup and Experimentation Results">
+
+        <h2 id="sampling-loops">Part 1: Sampling Loops</h2>
+
+        <h3 id="forward-process">Part 1.1: Implementing the Forward Process</h3>
+        <p>To implement the forward process, I added noise to a clean image by iteratively applying a noise function at different timesteps. 
+            The results below showcase how the image progressively becomes noisier as the timestep increases.</p>
+        <img src="noisy_images.png" alt="Noisy Images at Different Timesteps">
+
+        <h3 id="classical-denoising">Part 1.2: Classical Denoising</h3>
+        <p>For classical denoising, I applied a Gaussian blur filter to the noisy images generated in the forward process. 
+            The results show the original noisy images.</p>
+        <img src="blurred_images.png" alt="Classical Gaussian Denoised Images">
+
+        <h3 id="one-step-denoising">Part 1.3: One-Step Denoising</h3>
+        <p>Using a pre-trained diffusion model (UNet), I denoised the images that had been corrupted at timesteps t=250, 500, and 750. 
+            This one-step denoising method used the model to estimate and remove the noise in a single iteration. 
+            The results below compare the original noisy images with the model's estimated clean versions.</p>
+        <img src="noisy_images.png" alt="One-Step Denoising Results">
+        <img src="noisy_estimated.png" alt="One-Step Denoising Results">
+        <img src="clean_estimated.png" alt="One-Step Denoising Results">
+
+        <h3 id="iterative-denoising">Part 1.4: Iterative Denoising</h3>
+        <p>To improve upon the one-step denoising, I implemented an iterative denoising loop. 
+              This approach involved creating strided timesteps and repeatedly applying the diffusion model to progressively remove noise. 
+              I added noise to a test image and then iteratively denoised it, showing the image at each significant step. 
+              The final image is compared to the one-step denoised version and the Gaussian-blurred image.</p>
+        <img src="noisy_images_5.png" alt="Iterative Denoising Progression">
+        <img src="denoised_images.png" alt="Iterative Denoising Progression">
+
+        <h3 id="diffusion-model-sampling">Part 1.5: Diffusion Model Sampling</h3>
+        <p>In this part, I used the iterative denoising process to generate images from scratch by starting with random noise. 
+            By applying the diffusion model iteratively, I was able to create realistic images from pure noise. 
+            Below are 5 sample images that were generated using this method.</p>
+        <img src="generated_images.png" alt="Images Generated with Diffusion Model">
+
+        <h3 id="cfg">Part 1.6: Classifier-Free Guidance (CFG)</h3>
+        <p>Classifier-Free Guidance (CFG) was used to enhance the quality of the generated images. 
+            By combining conditional and unconditional noise estimates, CFG allowed me to steer the image generation towards more visually appealing results. 
+            Below are 5 images generated using CFG.</p>
+        <img src="generated_images_cfg.png" alt="Images Generated with CFG">
+
+        <h3 id="image-to-image">Part 1.7: Image-to-Image Translation</h3>
+        <p>For image-to-image translation, I used the diffusion models to make edits to existing images. 
+            I experimented with both hand-drawn and web images, projecting them onto a natural image manifold. 
+            Below are examples of the edited images, including frog images and images from the Efros dataset.</p>
+        <img src="test_edited_images.png" alt="Image-to-Image Translation Results">
+        <img src="efros_edited_images.png" alt="Image-to-Image Translation Results">
+        <img src="frog_edited_images.png" alt="Image-to-Image Translation Results">
+
+        <h4>Part 1.7.1: Editing Hand-Drawn and Web Images</h4>
+        <p>Hand-drawn and web images were edited using the diffusion model to enhance their quality and realism. 
+            By projecting these images onto a natural image manifold, I was able to transform them into more photorealistic versions. 
+            Below are examples of the edited images.</p>
+        <img src="web_edited_images.png" alt="Hand-Drawn Image Editing Example">
+        <img src="face_edited_images.png" alt="Hand-Drawn Image Editing Example">
+        <img src="dog_edited_images.png" alt="Web Image Editing Example">
+
+        <h4>Part 1.7.2: Inpainting</h4>
+        <p>Inpainting was implemented to edit specific parts of an image. 
+            Using a binary mask, I was able to generate new content for selected regions while preserving the unchanged areas. 
+            This technique is particularly useful for making localized edits without affecting the rest of the image.
+            Below are examples of inpainting results.</p>
+        <img src="test_inpainting.png" alt="Inpainting Example">
+        <img src="food_inpainting.png" alt="Inpainting Example">
+        <img src="mac_inpainting.png" alt="Inpainting Example">
+
+        <h4>Part 1.7.3: Text-Conditional Image-to-Image Translation</h4>
+        <p>In this part, I modified image generation using text prompts to guide the edits. 
+            By providing a new text prompt, I was able to influence the model to generate new features or alter existing ones in an image, starting from various noise levels. 
+            Below are examples of images generated using text-conditional image-to-image translation.</p>
+        <img src="rocket_edited_images.png" alt="Text-Conditional Image Generation Example">
+        <img src="efros_edited_images.png" alt="Text-Conditional Image Generation Example">
+        <img src="cat_edited_images.png" alt="Text-Conditional Image Generation Example">
+
+        <h3 id="visual-anagrams">Part 1.8: Visual Anagrams</h3>
+        <p>Visual anagrams were created to generate images that change their interpretation when flipped upside down. 
+            By implementing this technique, I produced an image that displayed different scenes depending on its orientation.
+            Below are examples of visual anagrams that exhibit this property. You can absolutelt tell which prompts I used for each image. </p>
+        <img src="flip_illusion_1.png" alt="Visual Anagram Example">
+        <img src="flip_illusion_2.png" alt="Visual Anagram Example">
+        <img src="flip_illusion_3.png" alt="Visual Anagram Example">
+
+        <h3 id="hybrid-images">Part 1.9: Hybrid Images</h3>
+        <p>Hybrid images were created by combining features from two different prompts. 
+            By blending high-frequency and low-frequency information from two separate images, I was able to produce a composite image that appears different depending on the viewing distance. 
+            Below are examples of hybrid images, including one that appears as a skull from far away but transforms into a waterfall when viewed up close.</p>
+        <img src="hybrid_1.png" alt="Hybrid Image Example">
+        <img src="hybrid_2.png" alt="Hybrid Image Example">
+        <img src="hybrid_3.png" alt="Hybrid Image Example">
+
+        <h2 id="training-unet">Part 2: Training a Single-Step Denoising UNet</h2>
+        <p>I started by building a simple one-step denoiser. Given a noisy image, I wanted to train a denoiser that could map it to a clean image. To do this, I optimized over an L2 loss.</p>
+
+        <h3 id="unet-implementation">Part 2.1: Implementing the UNet</h3>
+        <p>I implemented the denoiser as a UNet. It has a few downsampling and upsampling blocks, with skip connections in between.</p>
+        <img src="unet.png" alt="Unconditional UNet">
+        <p>The diagram above shows the standard tensor operations I used:</p>
+        <img src="unet_operations.png" alt="Standard UNet Operations">
+
+        <h3 id="using-unet">Part 2.2: Using the UNet to Train a Denoiser</h3>
+        <p>To solve the denoising problem, I wanted the UNet to take in a noisy image and output a clean version of it. The training goal was to minimize the L2 loss between the predicted and clean images.</p>
+        <p>I generated training data pairs of (clean image, noisy image). Each clean image was a clean MNIST digit, and for each batch, I added noise to create the noisy version:</p>
+        <img src="1.png" alt="Varying levels of noise on MNIST digits">
+
+        <h4 id="training">Part 2.2.1: Training</h4>
+        <p>Then, I trained the model to perform denoising.</p>
+        <p>Below is the training loss curve for the UNet:</p>
+        <img src="4.png" alt="Training Loss Curve">
+        <p>I visualized the denoised results on the test set at the end of training. Below are sample results after the 1st and 5th epochs:</p>
+        <img src="2.png" alt="Results on digits from the test set after 1 epoch of training">
+        <img src="3.png" alt="Results on digits from the test set after 5 epochs of training">
+
+        <h4 id="out-of-distribution">Part 2.2.2: Out-of-Distribution Testing</h4>
+        <p>Next, I tested the model on noise levels that it wasn't trained for to see how well it could generalize:</p>
+        <img src="5.png" alt="Results on digits from the test set with varying noise levels">
+
+        <h2 id="training-diffusion">Part 3: Training a Diffusion Model</h2>
+        <p>Now, I was ready to train a diffusion model using a UNet that can iteratively denoise an image. This part involved implementing a DDPM (Denoising Diffusion Probabilistic Model).</p>
+        <p>To do this, I conditioned the UNet on a timestep. This allowed the model to learn how to remove noise effectively at different stages. Conditioning the UNet meant adding information about the current timestep to guide the denoising process more accurately.</p>
+
+        <h3 id="time-conditioning">Part 3.1: Adding Time Conditioning to UNet</h3>
+        <p>To add time conditioning, I needed to inject the timestep information into the UNet. I did this using a fully-connected block (FCBlock), which let me add the scalar timestep as an extra input to the model.</p>
+        <img src="cond.png" alt="Conditioned UNet">
+        <p>I used an operator called FCBlock to inject the timestep. The diagram above shows how I used the FCBlock to condition the UNet on the timestep.</p>
+        <img src="fc.png" alt="FCBlock for conditioning">
+        <p>Since the timestep is just a single number, I normalized it to be between 0 and 1 before feeding it into the FCBlock.</p>
+
+        <h3 id="training-time-conditioned">Part 3.2: Training the Time-Conditioned UNet</h3>
+        <p>To train the time-conditioned UNet, I picked random images from the training set along with random timesteps, and trained the model to predict the noise that had been added. This process was repeated for different images and different timesteps until the model learned to effectively denoise at all stages.</p>
+        <p>Below is the training loss curve for the time-conditioned UNet:</p>
+        <img src="6.png" alt="Time-Conditioned UNet training loss curve">
+
+        <h3 id="sampling-time-conditioned">Part 3.3: Sampling from the Time-Conditioned UNet</h3>
+        <p>Once the time-conditioned UNet was trained, I used it to generate images from pure noise. The sampling process was similar to the iterative denoising approach I used earlier, but now the model was better at understanding the noise level at each step, thanks to the timestep conditioning.</p>
+        <img src="7.png" alt="Sampling from time-conditioned UNet">
+        <img src="8.png" alt="Epoch 1 time-conditioned">
+
+        <h3 id="class-conditioning">Part 3.4: Adding Class-Conditioning to UNet</h3>
+        <p>To make the generated images even better, I also added class conditioning to the UNet. This allowed the model to generate specific digit classes, giving me more control over the output. I added two more FCBlocks to the UNet to inject class information alongside the timestep.</p>
+        <p>Instead of a scalar, I used a one-hot vector to represent the class. This way, the model could understand which class it was working with, while still being flexible enough to generate images without any class conditioning (by dropping the conditioning information).</p>
+        <p>Below is the training curve for the class-conditioned UNet:</p>
+        <img src="9.png" alt="Training curve">
+
+        <h3 id="sampling-class-conditioned">Part 3.5: Sampling from the Class-Conditioned UNet</h3>
+        <p>After training the class-conditioned UNet, I sampled images from the model to see how well it could generate digits of different classes. The sampling process was the same as for the time-conditioned model, but with the added benefit of class control. I also used classifier-free guidance to improve the quality of the generated images by adjusting the conditioning signal during sampling.</p>
+        <p>Below are the results of sampling from the class-conditioned UNet at different stages of training, such as after 5 and 20 epochs:</p>
+        <img src="10.png" alt="Epoch 5 class-conditioned UNet">
+        <img src="11.png" alt="Epoch 20 class-conditioned UNet">
+
+        <h3>Conclusion</h3>
+        <p>Overall, this project was a great learning experience. I was able to explore various diffusion models and understand how they can be used to generate images from noise. By training a UNet to denoise images, I learned how to improve the quality of generated images and control the output using class and time conditioning. I also experimented with different techniques such as classifier-free guidance and image-to-image translation to enhance the generated images further. This project has given me a deeper understanding of diffusion models and their applications in image generation and manipulation.</p>
+
+        <footer>&copy; 2024 Ziqian Luo. No Rights Reserved.</footer>
+    </div>
+</body>
+</html>
