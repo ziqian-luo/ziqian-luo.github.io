@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Final Project: Lightfield Photography and Gradient Domain Fusion</title>
+    <meta name="author" content="Your Name">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #e66465, #9198e5); /* Modified gradient */
+            background-size: 400% 400%;
+            animation: gradientScroll 15s ease infinite;
+        }
+        @keyframes gradientScroll {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        .main-content {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2, h3 {
+            margin: 20px 0;
+            color: #333;
+        }
+        h3.author {
+            color: #ccc;
+            margin: 5px 0;
+            font-weight: normal;
+        }
+        p, ul {
+            text-align: justify;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .gif-img {
+            width: 48%;
+            height: auto;
+            display: inline-block;
+            margin: 1%;
+        }
+        ul {
+            text-align: left;
+            padding: 0 20px;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+        .content-table {
+            margin: 20px auto;
+            text-align: center;
+            width: fit-content;
+        }
+        .content-table ul {
+            list-style: none;
+            padding: 0;
+        }
+        .content-table ul li {
+            margin: 10px 0;
+        }
+        a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script type="text/javascript" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        processEscapes: true
+      }
+    });
+  </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content">
+        <header>
+            <h1>CS180 Final Project: Lightfield Photography and Gradient Domain Fusion</h1>
+            <h3 class="author">Author: Ziqian Luo</h3>
+        </header>
+
+        <div class="content-table">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#lightfield-overview">Lightfield Photography Overview</a></li>
+                <li><a href="#depth-refocusing">Part 1: Depth Refocusing</a></li>
+                <li><a href="#aperture-adjustment">Part 2: Aperture Adjustment</a></li>
+                <li><a href="summary-lightfield">Summary of Lightfield Photography</a></li>
+                <li><a href="#gradient-overview">Gradient Domain Fusion Overview</a></li>
+                <li><a href="#toy-problem">Part 1: Toy Problem</a></li>
+                <li><a href="#poisson-blending">Part 2: Poisson Blending</a></li>
+                <li><a href="#mixed-gradients">Part 3: Mixed Gradients (B & W)</a></li>
+                <li><a href="#summary-gradient-domain">Summary of Gradient Domain Fusion</a></li>
+            </ul>
+        </div>
+        <section id="lightfield-overview">
+    <h2>Lightfield Photography Overview</h2>
+    <p>
+        Lightfield photography captures a scene from multiple viewpoints, creating a rich dataset that allows for computational adjustments after the photos are taken. This project explores two key techniques enabled by lightfield data: depth refocusing and aperture adjustment, using datasets from the Stanford Light Field Archive.
+    </p>
+</section>
+
+<section id="depth-refocusing">
+    <h2>Part 1: Depth Refocusing</h2>
+    <p>
+        Depth refocusing allows me to simulate changing the focal plane of a photograph after it's been taken. By working with a grid of images captured from slightly different positions, I can computationally mimic the effect of focusing on objects at various distances, bringing different parts of the scene into focus.
+    </p>
+    <h3>Implementation Details</h3>
+    <p>
+        My approach leverages the multiple viewpoints available in the lightfield data. I shift each image in the grid based on its position relative to a central viewpoint and the desired depth. The amount of shift is determined by a depth parameter, <code>c</code>.
+    </p>
+    <p>
+        <b>Shift Calculation:</b>
+    </p>
+    <pre>
+        <code>
+shift_i = c * (center_i - i)
+shift_j = c * (j - center_j)
+        </code>
+    </pre>
+    <p>
+        Here, <code>(i, j)</code> is the image's position in the grid, <code>(center_i, center_j)</code> is the grid's center, and <code>shift_i</code>, <code>shift_j</code> are the vertical and horizontal shifts. A larger <code>c</code> focuses on closer objects, while a smaller or negative <code>c</code> focuses further away.
+    </p>
+    <p>
+        <b>Process:</b>
+    </p>
+    <ol>
+        <li>Load the image grid.</li>
+        <li>For each depth <code>c</code>:
+            <ol>
+                <li>Calculate the shift for each image using the above equations.</li>
+                <li>Apply the shift using nearest-neighbor interpolation (<code>scipy.ndimage.shift</code>).</li>
+            </ol>
+        </li>
+        <li>Average all shifted images for a given depth to get the refocused image.</li>
+        <li>Repeat for different depths.</li>
+        <li>Assemble the refocused images into a GIF to visualize the effect.</li>
+    </ol>
+    <h3>Chess Dataset</h3>
+    <img src="output/depth_refocused_chess.gif" alt="Depth Refocusing Chess" loop>
+    <p>This GIF demonstrates depth refocusing on a chessboard. Depth ranges from 0 to 3 with step size 0.2.</p>
+
+    <h3>Bunny Dataset</h3>
+    <img src="output/depth_refocused_bunny.gif" alt="Depth Refocusing Bunny" loop>
+    <p>This GIF demonstrates depth refocusing on a bunny scene. Depth ranges from 0 to 2 with step size 0.2.</p>
+</section>
+
+<section id="aperture-adjustment">
+    <h2>Part 2: Aperture Adjustment</h2>
+    <p>
+        Aperture adjustment simulates changing the lens aperture of a camera. A wider aperture (smaller f-number) results in a shallower depth of field (more background blur), while a narrower aperture (larger f-number) increases the depth of field.
+    </p>
+    <h3>Implementation Details</h3>
+    <p>
+        I build on the depth refocusing concept, but instead of using all images for each depth, I select a subset based on their distance from the grid's center. This simulates different aperture sizes.
+    </p>
+    <p>
+        <b>Image Selection:</b>
+    </p>
+    <pre>
+        <code>
+(i - center_i)^2 + (j - center_j)^2 <= aperture_radius^2
+        </code>
+    </pre>
+    <p>
+       I only use images within a given <code>aperture_radius</code> from the center <code>(center_i, center_j)</code>. Smaller radii mimic narrower apertures, while larger radii mimic wider apertures.
+    </p>
+    <p>
+        <b>Shift Calculation:</b>
+    </p>
+    <p>
+        The shift calculation is the same as in depth refocusing, using the same depth parameter <code>c</code> and equations.
+    </p>
+    <p>
+        <b>Process:</b>
+    </p>
+    <ol>
+        <li>For each <code>aperture_radius</code> and depth <code>c</code>:
+            <ol>
+                <li>Select images within the <code>aperture_radius</code>.</li>
+                <li>Calculate the shift for each selected image.</li>
+                <li>Apply the shift.</li>
+            </ol>
+        </li>
+        <li>Average the shifted images to create the aperture-adjusted image.</li>
+        <li>Repeat for various aperture radii and depths.</li>
+        <li>Assemble the images into a GIF to visualize the effect.</li>
+    </ol>
+    <h3>Chess Dataset</h3>
+    <img src="output/aperture_refocused_chess.gif" alt="Aperture Adjustment Chess" loop>
+    <p>This GIF demonstrates aperture adjustment on a chessboard. <code>c=1.5</code> and aperture ranges from 0 to 9. </p>
+
+    <h3>Bunny Dataset</h3>
+    <img src="output/aperture_refocused_bunny.gif" alt="Aperture Adjustment Bunny" loop>
+    <p>This GIF demonstrates aperture adjustment on a bunny scene. <code>c=0.5</code> and aperture ranges from 0 to 9. </p>
+</section>
+
+<section id="summary-lightfield">
+    <h2>Summary of Lightfield</h2>
+    <p>
+       In this project, I explored the capabilities of lightfield photography through depth refocusing and aperture adjustment. By leveraging multiple viewpoints, I was able to simulate changing the focal plane and lens aperture after capturing the images. I guess these techniques are now used in the portait mode in smartphone cameras.
+    </p>
+</section>
+
+<section id="gradient-overview">
+    <h2>Gradient Domain Fusion Overview</h2>
+    <p>
+        Gradient-domain image processing techniques work by manipulating the differences between neighboring pixel intensities (gradients) rather than the pixel values themselves. This approach is effective because our visual system is more sensitive to changes in intensity than to absolute intensity. I focused on Poisson blending, a method for seamlessly merging a source image region into a target image by matching gradients.
+    </p>
+</section>
+
+<section id="toy-problem">
+    <h2>Part 1: Toy Problem</h2>
+    <p>
+        The toy problem introduced me to the concept of gradient-domain image reconstruction. Given an image's x and y gradients and a single "anchor" pixel value, I learned how to reconstruct the original image. This demonstrated how images can be represented and manipulated using gradients.
+    </p>
+    <h3>Implementation Concepts</h3>
+    <p>
+        I formulated the reconstruction as a least squares problem. I used \( s(x,y) \) to denote the intensity of the source image at pixel (x, y), and \( v(x,y) \) for the values of the image I was solving for. For each pixel, I had two primary objectives:
+    </p>
+        <ol>
+            <li>
+                Minimize \( ( v(x+1,y)-v(x,y) - (s(x+1,y)-s(x,y)) )^2 \): This ensured that the x-gradients of \(v\) closely matched the x-gradients of \(s\).
+            </li>
+            <li>
+                Minimize \( ( v(x,y+1)-v(x,y) - (s(x,y+1)-s(x,y)) )^2 \): This did the same for the y-gradients.
+            </li>
+        </ol>
+    <p>
+        Because these objectives alone could be satisfied by adding any constant to \(v\), I added a third objective:
+    </p>
+        <ol start="3">
+            <li>
+                Minimize \((v(0,0)-s(0,0))^2 \): This anchored the top-left corner of \(v\) to the same color as \(s\) (using 0-based indexing).
+            </li>
+        </ol>
+    <p>
+    To solve this, I constructed a sparse matrix  \( A \) and a vector \( b \). Each row in \( A \) represented one of the x-gradient or y-gradient constraints.
+    </p>
+        <p>
+            <b>Encoding the Equations:</b>
+        </p>
+    <ul>
+        <li>
+            <b>X-gradient:</b> For each pixel (x, y), I placed -1 in the column of \( A \) corresponding to \( v(x, y) \) and 1 in the column for \( v(x+1, y) \). The corresponding entry in \( b \) became \( s(x+1, y) - s(x, y) \).
+        </li>
+        <li>
+            <b>Y-gradient:</b> Similarly, for each pixel (x, y), I placed -1 in the column of \( A \) for \( v(x, y) \) and 1 in the column for \( v(x, y+1) \). The corresponding entry in \( b \) became \( s(x, y+1) - s(x, y) \).
+        </li>
+        <li>
+            <b>Anchor Constraint:</b> I added a row to \( A \) with 1 in the column for \( v(0, 0) \), and set the corresponding entry in \( b \) to \( s(0, 0) \).
+        </li>
+    </ul>
+
+    <p>
+        Finally, I solved the sparse system \( Av = b \) to obtain the reconstructed image \( v \).
+    </p>
+    <img src="output/reconstructed.png" alt="Toy Problem Comparison">
+    <p>The max error is 0.001.</p>
+
+</section>
+
+<section id="poisson-blending">
+    <h2>Part 2: Poisson Blending</h2>
+    <p>
+        Poisson blending allowed me to seamlessly merge a source region \( S \) into a target image \( T \) by matching gradients at the boundary and within the source region.
+    </p>
+    <p>
+        <b>Objective Function:</b>
+        \[ \text{minimize: } \sum_{i \in S, j \in N_i \cap S} ((v_i - v_j) - (s_i - s_j))^2 + \sum_{i \in S, j \in N_i \cap \neg S} ((v_i - t_j) - (s_i - s_j))^2 \]
+    </p>
+    <p>
+        where \( N_i \) is the set of 4-neighbors of pixel \( i \).
+    </p>
+    <h3>Implementation Concepts</h3>
+    <p>
+    I constructed a sparse matrix \( A \) and vector \( b \). Each row corresponded to a pixel \( i \) in \( S \).
+    </p>
+    <ul>
+        <li>
+            If neighbor \( j \) was also in \( S \):
+            <ul>
+                <li>Set \( A_{i,i} = 1 \) and \( A_{i,j} = -1 \).</li>
+                <li>Add \( (s_i - s_j) \) to \( b_i \).</li>
+            </ul>
+        </li>
+        <li>
+            If neighbor \( j \) was outside \( S \) (in \( T \)):
+            <ul>
+                <li>Set \( A_{i,i} = 1 \).</li>
+                <li>Add \( (s_i - s_j) + t_j \) to \( b_i \).</li>
+            </ul>
+        </li>
+    </ul>
+    <p>
+        I solved the sparse system \( Av = b \) to find the optimal pixel values \( v \) within \( S \).
+    </p>
+    <h3>Example</h3>
+    <img src="output/example1.png" alt="Poisson Blending">
+    <img src="output/mask1.png" alt="Poisson Blending Mask">
+    <img src="output/combined1.png" alt="Poisson Blending Combined">
+    <img src="output/poisson1.png" alt="Poisson Blending">
+    <img src="output/example2.png" alt="Poisson Blending">
+    <img src="output/mask2.png" alt="Poisson Blending Mask">
+    <img src="output/combined2.png" alt="Poisson Blending Combined">
+    <img src="output/poisson2.png" alt="Poisson Blending">
+    <img src="output/example3.png" alt="Poisson Blending">
+    <img src="output/mask3.png" alt="Poisson Blending Mask">
+    <img src="output/combined3.png" alt="Poisson Blending Combined">
+    <img src="output/poisson3.png" alt="Poisson Blending">
+    <img src="output/example4.png" alt="Poisson Blending">
+    <img src="output/mask4.png" alt="Poisson Blending Mask">
+    <img src="output/combined4.png" alt="Poisson Blending Combined">
+    <img src="output/poisson4.png" alt="Poisson Blending">
+    <p> For example 1 and 2, the results are pretty good and the blendings are seamless. 
+        However, for example 3 and 4, we can see that there are observable blurry boundries around the objects so the objects aren't well blended into the background. Probably it is because of the texture/color mismatch that makes this technique less effective. </p>
+
+</section>
+
+<section id="mixed-gradients">
+    <h2>Part 3: Mixed Gradients</h2>
+    <p>
+       Mixed gradients blending enhanced Poisson blending by letting me choose between the source or target gradient for each pixel, based on whichever had the larger magnitude. This helped preserve more details from the target image when appropriate.
+    </p>
+   <p>
+    <b>Objective Function:</b>
+</p>
+<p>
+    \[ \text{minimize: } \sum_{i \in S, j \in N_i \cap S} ((v_i - v_j) - d_{ij})^2 + \sum_{i \in S, j \in N_i \cap \neg S} ((v_i - t_j) - d_{ij})^2 \]
+</p>
+<p>
+    where \( d_{ij} \) is the larger gradient:
+</p>
+<p>
+    \[ d_{ij} = \begin{cases}
+          s_i - s_j & \text{if } |s_i - s_j| > |t_i - t_j| \\
+          t_i - t_j & \text{otherwise}
+       \end{cases}
+    \]
+</p>
+    <h3>Implementation Concepts</h3>
+    <p>
+    I constructed the sparse matrix \( A \) similarly to Poisson blending. However, the values in \( b \) were determined by \( d_{ij} \) instead of just the source gradients.
+</p>
+<ul>
+    <li>If neighbor \( j \) was also in \( S \), I set \( A_{i,i} = 1 \), \( A_{i,j} = -1 \), and added \( d_{ij} \) to \( b_i \).</li>
+    <li>If neighbor \( j \) was outside \( S \), I set \( A_{i,i} = 1 \), and added \( t_j + d_{ij} \) to \( b_i \).</li>
+</ul>
+    <h3>Example</h3>
+<img src="output/mixin1.png" alt="Mixed Gradients">
+<img src="output/mixin2.png" alt="Mixed Gradients">
+<img src="output/mixin3.png" alt="Mixed Gradients">
+<img src="output/mixin4.png" alt="Mixed Gradients">
+<p> All examples are well blended into the background without the blurry boundary from the poisson blending. However, the blended objects are being more transparent so we can see the background throught it (especially example 3 and 4).</p>
+
+<section id="summary-gradient-domain">
+    <h2>Summary of Gradient Domain Fusion</h2>
+    <p>
+        Through this project, I learned how manipulating image gradients, rather than pixel values directly, can lead to powerful editing capabilities. Poisson and mixed-gradient blending demonstrated that seamless and realistic image composites are achievable by focusing on gradient matching. I would like to see how AI can be used to improve the blending techniques and make it more efficient and effective.
+    </p>
+</section>
+        <footer>
+            <p>© Ziqian Luo. No Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
